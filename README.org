@@ -1,0 +1,89 @@
+* cutils
+Uma pequena biblioteca criada para tornar código C um pouco menos poluído.
+
+** Memória
+Ao invés de alocar vários buffers e liberar eles um por um, pode-se liberar todos de uma vez com uma função:
+
+#+begin_src c
+#define CUTILS_IMPLEMENTATION //não é um header só
+#include "cutils/cutils.h"
+
+int main(int argc, char **argv){
+	mem_init();
+
+	char *buffer = mem_alloc(10);
+ 	mem_copy(buffer, "Hello"); 
+  	/*
+   	sempre irá garantir que a quantidade
+  	de dados copiados é menor que o tamanho do buffer.
+     	*/
+
+	buffer = mem_ralloc(buffer, 20); // equivalente ao realloc()
+	mem_copy(buffer, "Hello, World!");
+
+	mem_freeall(true); // usa arrays internamente. o boolean diz se eles devem ser liberados também.
+	return 0;
+}
+#+end_src
+
+Os outros "módulos" da biblioteca usam essas funções internamente, então
+o ideal é sempre chamar as funções /mem_init/ e /mem_freeall/.
+
+** Strings
+Existem [[https://github.com/IucassacuI/cutils/blob/main/str.h][várias]] funções de manipulação de strings, muitas com nomes inspirados em métodos Ruby.
+Alguns que valem a pena mencionar são /str_sub/, /str_gsub/, /str_split/ e /str_format/.
+#+begin_src c
+char *str_sub(const char *str, const char *substr, const char *new);
+#+end_src
+
+Substitui a primeira ocorrência de /substr/ em /str/ por /new/.
+
+/str_gsub/ substitui todas as ocorrências encontradas.
+
+#+begin_src c
+char **str_split(char *str, const char *separator);
+#+end_src
+Quebra a string /str/ por /separator/.
+
+#+begin_src c
+char *str_format(const char *fmt, ...);
+#+end_src
+Funciona da mesma forma que o printf, mas retorna a string ao invés de imprimí-la.
+
+** Arrays
+O cutils também oferece uma implementação de arrays que tem inteiros unsigned de 64 bits como elementos, possibilitando armazenar qualquer dado, bastando apenas faznr o /casting/ do ponteiro para /uint64_t/.
+As [[https://github.com/IucassacuI/cutils/blob/main/array.h][funções]] também têm nomes inspirados em métodos Ruby.
+
+#+begin_src c
+array nums = arr_new();
+nums = arr_push(nums, 1);
+nums = arr_push(nums, 2);
+nums = arr_push(nums, 3);
+nums = arr_pop();
+
+arr_print(nums);
+#+end_src
+
+Pode-se iterar sobre um array de duas formas,
+assim...
+#+begin_src c
+for(int i = 0; i < arr_size(arr); i++)
+	printf("%d\n", arr_next(&arr));
+#+end_src
+...ou assim:
+#+begin_src c
+for(int i = 0; i < arr_size(arr); i++)
+	printf("%d\n", arr_at(i));
+#+end_src
+
+** Hash maps
+Também conhecidos como /maps/ e /dicionários/.
+Usa o algoritmo /djb_hash/ internamente.
+
+#+begin_src c
+hashmap pessoa_idade = hash_new();
+hash_set(pessoa_idade, "lucas", 17);
+hash_set(pessoa_idade, "ellison", 84);
+
+printf("Idade: %d\n", hash_get(pessoa_idade, "ellison"));
+#+end_src
