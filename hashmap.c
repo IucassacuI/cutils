@@ -3,7 +3,7 @@
 #include "hashmap.h"
 #include "memory.h"
 
-static uint32_t hash(char *str){
+static uint32_t djb_hash(char *str){
 	uint32_t hash = 5381;
 	int c;
 
@@ -22,7 +22,7 @@ hashmap hash_new(void){
 }
 
 void hash_set(hashmap hm, char *key, uint64_t value){
-	uint32_t pos = hash(key) % hm.size;
+	uint32_t pos = djb_hash(key) % hm.size;
 
 	if(hm.buckets[pos] != NULL){
 		hm.size++;
@@ -41,7 +41,7 @@ void hash_set(hashmap hm, char *key, uint64_t value){
 }
 
 uint64_t hash_get(hashmap hm, char *key){
-	uint32_t pos = hash(key) % hm.size;
+	uint32_t pos = djb_hash(key) % hm.size;
 	bucket *b = hm.buckets[pos];
 
 	if(b == NULL)
@@ -62,7 +62,7 @@ uint64_t hash_get(hashmap hm, char *key){
 }
 
 void hash_del(hashmap hm, char *key){
-	uint32_t pos = hash(key) % hm.size;
+	uint32_t pos = djb_hash(key) % hm.size;
 
 	if(hm.buckets[pos] == NULL)
 		return;
