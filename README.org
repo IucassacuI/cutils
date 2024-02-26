@@ -59,7 +59,7 @@ array nums = arr_new();
 nums = arr_push(nums, 1);
 nums = arr_push(nums, 2);
 nums = arr_push(nums, 3);
-nums = arr_pop();
+nums = arr_pop(nums);
 
 arr_print(nums);
 #+end_src
