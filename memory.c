@@ -2,87 +2,90 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
-static char **freearr;
-static unsigned int *bufsizes;
+static char **mem_buffers;
+static int *mem_bufsizes;
 
-static int size = 0;
+static int mem_size = 0;
 
 void mem_init(void){
-	freearr = calloc(2, sizeof(char *));
-	bufsizes = calloc(2, sizeof(unsigned int));
+	mem_buffers = calloc(2, sizeof(char *));
+	mem_bufsizes = calloc(2, sizeof(int));
 
-	assert(freearr != NULL);
-	assert(bufsizes != NULL);
-	size = 2;
+	assert(mem_buffers != NULL);
+	assert(mem_bufsizes != NULL);
+	mem_size = 2;
 }
 
-char *mem_alloc(unsigned int bytes){
-	char *ptr = calloc(bytes, sizeof(char));
+char *mem_alloc(int bytes){
+	char *ptr = calloc(bytes+1, sizeof(char));
 	assert(ptr != NULL);
 
-	for(int i = 0; i < size; i++){
-		if(freearr[i] == NULL){
-			freearr[i] = ptr;
-			bufsizes[i] = bytes;
+	for(int i = 0; i < mem_size; i++){
+		if(mem_buffers[i] == NULL){
+			mem_buffers[i] = ptr;
+			mem_bufsizes[i] = bytes;
 		   	return ptr;
 		}
 	}
 
-	size++;
+	mem_size++;
 
-	freearr = realloc(freearr, sizeof(char *)*size);
-	bufsizes = realloc(bufsizes, sizeof(unsigned int)*size);
+	mem_buffers = realloc(mem_buffers, sizeof(char *)*mem_size);
+	mem_bufsizes = realloc(mem_bufsizes, sizeof(int)*mem_size);
 
-	assert(freearr != NULL);
-	assert(bufsizes != NULL);
+	assert(mem_buffers != NULL);
+	assert(mem_bufsizes != NULL);
 
-	freearr[size-1] = ptr;
-	bufsizes[size-1] = bytes;
+	mem_buffers[mem_size-1] = ptr;
+	mem_bufsizes[mem_size-1] = bytes;
 
 	return ptr;
 }
 
-char *mem_ralloc(char *ptr, unsigned int bytes){
+char *mem_ralloc(char *ptr, int bytes){
 	int pos = 0;
 
-	for(int j = 0; j < size; j++){
-		if(freearr[j] == ptr){
+	for(int j = 0; j < mem_size; j++){
+		if(mem_buffers[j] == ptr){
 			pos = j;
 			break;
 		}
 	}
 
-	char *new = realloc(ptr, bytes);
+	char *new = realloc(ptr, bytes+1);
 	assert(new != NULL);
 
-	freearr[pos] = new;
-	bufsizes[pos] = bytes;
+	new[bytes] = 0;
+
+	mem_buffers[pos] = new;
+	mem_bufsizes[pos] = bytes;
 
 	return new;
 }
 
 void mem_freeall(bool dealloc){
-	for(int k = 0; k < size; k++){
-		if(freearr[k] != NULL){
-			free(freearr[k]);
-			freearr[k] = NULL;
-			bufsizes[k] = 0;
+	for(int k = 0; k < mem_size; k++){
+		if(mem_buffers[k] != NULL){
+			free(mem_buffers[k]);
+			mem_buffers[k] = NULL;
+			mem_bufsizes[k] = 0;
 	        }
 	}
 
 	if(dealloc){
-		free(freearr);
-		free(bufsizes);
-		size = 0;
+		free(mem_buffers);
+		free(mem_bufsizes);
+		mem_size = 0;
 	}
 }
 
 void mem_copy(char *dst, const char *src){
 	int pos = -1;
 
-	for(int l = 0; l < size; l++){
-		if(freearr[l] == dst){
+	for(int l = 0; l < mem_size; l++){
+		if(mem_buffers[l] == dst){
 			pos = l;
 			break;
 		}
@@ -91,7 +94,7 @@ void mem_copy(char *dst, const char *src){
 	if(pos == -1)
 		return;
 
-	int dstsize = bufsizes[pos];
+	int dstsize = mem_bufsizes[pos];
 
 	for(int m = 0; m < dstsize-1 && src[m] != 0; m++)
 		dst[m] = src[m];
@@ -101,8 +104,8 @@ void mem_copy(char *dst, const char *src){
 int mem_read(char *dst, FILE *src){
 	int pos = -1;
 
-	for(int m = 0; m < size; m++){
-		if(freearr[m] == dst){
+	for(int m = 0; m < mem_size; m++){
+		if(mem_buffers[m] == dst){
 			pos = m;
 			break;
 		}
@@ -111,16 +114,16 @@ int mem_read(char *dst, FILE *src){
 	if(pos == -1)
 		return 0;
 
-	char *ret = fgets(dst, bufsizes[pos]-1, src);
+	char *ret = fgets(dst, mem_bufsizes[pos]-1, src);
 
 	return ret != NULL;
 }
 
-int mem_query(const char *buffer){
+int mem_query(const void *buffer){
 	int pos = -1;
 
-	for(int n = 0; n < size; n++){
-		if(freearr[n] == buffer){
+	for(int n = 0; n < mem_size; n++){
+		if(mem_buffers[n] == buffer){
 			pos = n;
 			break;
 		}
@@ -129,5 +132,5 @@ int mem_query(const char *buffer){
 	if(pos == -1)
 		return 0;
 	else
-		return bufsizes[pos];
+		return mem_bufsizes[pos];
 }
