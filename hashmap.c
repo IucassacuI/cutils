@@ -24,9 +24,9 @@ hashmap hash_new(void){
 void hash_set(hashmap hm, char *key, uint64_t value){
 	uint32_t pos = djb_hash(key) % hm.size;
 
-	if(hm.buckets[pos] != NULL){
+	if(mem_at(hm.buckets, sizeof(bucket *), pos) != NULL){
 		hm.size++;
-		pos = hash(key) % hm.size;
+		pos = djb_hash(key) % hm.size;
 		hm.buckets = (bucket **) mem_ralloc((char *) hm.buckets, hm.size * sizeof(bucket));
 	}
 
@@ -37,19 +37,19 @@ void hash_set(hashmap hm, char *key, uint64_t value){
 	b->key = copy;
 	b->value = value;
 
-	hm.buckets[pos] = b;
+	mem_at(hm.buckets, sizeof(bucket *), pos) = b;
 }
 
 uint64_t hash_get(hashmap hm, char *key){
 	uint32_t pos = djb_hash(key) % hm.size;
-	bucket *b = hm.buckets[pos];
+	bucket *b = mem_at(hm.buckets, sizeof(bucket *), pos);
 
 	if(b == NULL)
 		return 0;
 
 	if(strcmp(key, b->key) != 0){
-		for(int i = 0; i < hm.size; i++){
-			b = hm.buckets[i];
+		for(uint32_t i = 0; i < hm.size; i++){
+			b = mem_at(hm.buckets, sizeof(bucket *), i);
 
 			if(b == NULL)
 				continue;
@@ -64,11 +64,11 @@ uint64_t hash_get(hashmap hm, char *key){
 void hash_del(hashmap hm, char *key){
 	uint32_t pos = djb_hash(key) % hm.size;
 
-	if(hm.buckets[pos] == NULL)
+	if(mem_at(hm.buckets, sizeof(bucket *), pos) == NULL)
 		return;
 
 	if(strcmp(hm.buckets[pos]->key, key) != 0)
 		return;
 
-	hm.buckets[pos] = NULL;
+	mem_at(hm.buckets, sizeof(bucket *), pos) = NULL;
 }
