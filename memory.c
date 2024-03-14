@@ -96,8 +96,12 @@ void mem_copy(char *dst, const char *src){
 
 	int dstsize = mem_bufsizes[pos];
 
-	for(int m = 0; m < dstsize-1 && src[m] != 0; m++)
+	int m = 0;
+	while(m < dstsize-1 && src[m] != 0){
 		dst[m] = src[m];
+		m++;
+	}
+	dst[m] = 0;
 }
 
 
