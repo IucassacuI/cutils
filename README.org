@@ -21,6 +21,8 @@ int main(int argc, char **argv){
 	buffer = mem_ralloc(buffer, 20); // equivalente ao realloc()
 	mem_copy(buffer, "Hello, World!");
 
+	puts(buffer);
+
 	mem_freeall(true);
 	// usa dois arrays internamente. o boolean diz se eles devem ser liberados também.
 	return 0;
