@@ -1,5 +1,5 @@
 * cutils
-Uma pequena biblioteca criada para tornar código C um pouco menos poluído.
+Uma pequena biblioteca criada para tornar código C um pouco menos poluído e mais fácil de escrever.
 
 ** Memória
 Ao invés de alocar vários buffers e liberar eles um por um, pode-se liberar todos de uma vez com uma função:
@@ -21,13 +21,43 @@ int main(int argc, char **argv){
 	buffer = mem_ralloc(buffer, 20); // equivalente ao realloc()
 	mem_copy(buffer, "Hello, World!");
 
-	mem_freeall(true); // usa arrays internamente. o boolean diz se eles devem ser liberados também.
+	mem_freeall(true);
+	// usa dois arrays internamente. o boolean diz se eles devem ser liberados também.
 	return 0;
 }
 #+end_src
 
 Os outros "módulos" da biblioteca usam essas funções internamente, então
 o ideal é sempre chamar as funções /mem_init/ e /mem_freeall/.
+
+*** A macro mem_at
+A função /mem_copy/ oferece grande ajuda na prevenção de /buffer overflows/, mas não é o suficiente. Por isso, também há uma macro que pode ser usada para tornar o código mais seguro, /mem_at/.
+
+Causar um buffer overflow e um possível crash é muito simples:
+#+begin_src c
+endereco[99999] = 'A';
+#+end_src
+
+Para evitar que isso aconteça, pode-se usar a macro desta forma:
+#+begin_src c
+mem_at(endereco, x, y);
+#+end_src
+
+Onde /endereço/ é o ponteiro (previamente alocado com /mem_alloc/), /x/ é o tamanho da operação e /y/ é a posição.
+
+Exemplo:
+#+begin_src c
+mem_at(ints, sizeof(int), 0) = 13;
+printf("%d\n", mem_at(ints, sizeof(int), 0));
+#+end_src
+
+Que é o equivalente a:
+#+begin_src c
+ints[0] = 13;
+printf("%d\n", ints[0]);
+#+end_src
+
+Caso os limites do buffer sejam ultrapassados, o programa será abortado.
 
 ** Strings
 Existem [[https://github.com/IucassacuI/cutils/blob/main/str.h][várias]] funções de manipulação de strings, muitas com nomes inspirados em métodos Ruby.
@@ -41,7 +71,7 @@ Substitui a primeira ocorrência de /substr/ em /str/ por /new/.
 /str_gsub/ substitui todas as ocorrências encontradas.
 
 #+begin_src c
-char **str_split(char *str, const char *separator);
+char **str_split(const char *str, const char *separator);
 #+end_src
 Quebra a string /str/ por /separator/.
 
@@ -51,7 +81,7 @@ char *str_format(const char *fmt, ...);
 Funciona da mesma forma que o printf, mas retorna a string ao invés de imprimí-la.
 
 ** Arrays
-O cutils também oferece uma implementação de arrays que tem inteiros unsigned de 64 bits como elementos, possibilitando armazenar qualquer dado, bastando apenas faznr o /casting/ do ponteiro para /uint64_t/.
+O cutils também oferece uma implementação de arrays que tem inteiros unsigned de 64 bits como elementos, possibilitando armazenar qualquer dado, bastando apenas fazer o /casting/ do ponteiro para /uint64_t/.
 As [[https://github.com/IucassacuI/cutils/blob/main/array.h][funções]] também têm nomes inspirados em métodos Ruby.
 
 #+begin_src c
