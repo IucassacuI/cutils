@@ -113,7 +113,7 @@ char **str_split(const char *str, const char *separator){
 
 	char *token = strtok(copy, separator);
 
-	for(int i = 0; i < count; i++){
+	for(int i = 0; token != NULL; i++){
 		mem_at(strings, sizeof(char *), i) = token;
 		token = strtok(NULL, separator);
 	}
