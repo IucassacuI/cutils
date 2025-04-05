@@ -8,6 +8,7 @@ static char **mem_buffers;
 static int *mem_bufsizes;
 
 static int mem_size = 0;
+static int sem = 1;
 
 void mem_init(void){
 	mem_buffers = calloc(2, sizeof(char *));
@@ -19,6 +20,9 @@ void mem_init(void){
 }
 
 char *mem_alloc(int bytes){
+	while(sem == 0){}
+	sem--;
+
 	char *ptr = calloc(bytes+1, sizeof(char));
 	assert(ptr != NULL);
 
@@ -26,6 +30,8 @@ char *mem_alloc(int bytes){
 		if(mem_buffers[i] == NULL){
 			mem_buffers[i] = ptr;
 			mem_bufsizes[i] = bytes;
+
+			sem++;
 		   	return ptr;
 		}
 	}
@@ -41,10 +47,14 @@ char *mem_alloc(int bytes){
 	mem_buffers[mem_size-1] = ptr;
 	mem_bufsizes[mem_size-1] = bytes;
 
+	sem++;
+
 	return ptr;
 }
 
 char *mem_ralloc(char *ptr, int bytes){
+	while(sem == 0){}
+
 	int pos = 0;
 
 	for(int j = 0; j < mem_size; j++){
@@ -66,6 +76,8 @@ char *mem_ralloc(char *ptr, int bytes){
 }
 
 void mem_freeall(bool dealloc){
+	while(sem == 0){}
+
 	for(int k = 0; k < mem_size; k++){
 		if(mem_buffers[k] != NULL){
 			free(mem_buffers[k]);
@@ -82,6 +94,8 @@ void mem_freeall(bool dealloc){
 }
 
 void mem_copy(char *dst, const char *src){
+	while(sem == 0){}
+
 	int pos = -1;
 
 	for(int l = 0; l < mem_size; l++){
@@ -106,6 +120,8 @@ void mem_copy(char *dst, const char *src){
 
 
 int mem_read(char *dst, FILE *src){
+	while(sem == 0){}
+
 	int pos = -1;
 
 	for(int m = 0; m < mem_size; m++){
@@ -124,6 +140,7 @@ int mem_read(char *dst, FILE *src){
 }
 
 int mem_query(const void *buffer){
+	while(sem == 0){}
 	int pos = -1;
 
 	for(int n = 0; n < mem_size; n++){
